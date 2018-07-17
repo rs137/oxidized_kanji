@@ -13,6 +13,7 @@ pub fn transform(settings: Settings) -> Result<Vec<String>, Box<Error>> {
     let mut lines = get_lines(&settings, &file_paths)?;
     lines = filter_lines(&settings, lines);
 
+    find_invalid_lines(&lines)?;
 
     Ok(lines)
 }
@@ -55,3 +56,22 @@ pub fn filter_lines<'a>(settings: &'a Settings, lines: Vec<String>) -> Vec<Strin
         .collect()
 }
 
+fn find_invalid_lines<'a>(lines: &'a Vec<String>) -> Result<(), String> {
+    use std::fmt::Write;
+
+    let invalid_lines: Vec<String> = lines.iter()
+        .filter(|line| !line.contains("\t"))
+        .map(|line| line.to_owned())
+        .collect();
+
+    if invalid_lines.len() > 0 {
+        let mut error_message = String::new();
+        writeln!(&mut error_message, "Následující řádky nemohou být rozděleny: \n").unwrap();
+
+        for invalid_line in invalid_lines.iter() {
+            writeln!(&mut error_message, "{}", invalid_line).unwrap();
+        }
+        Err(error_message)
+    }
+    else { Ok(()) }
+}
