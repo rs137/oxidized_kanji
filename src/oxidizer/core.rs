@@ -7,7 +7,7 @@ use std::io;
 // specialChars { '、', '/', '~' }
 
 /// Vytváří soubor s výsledky voláním metod pro zpracování
-pub fn transform(settings: Settings) -> Result<Vec<String>, Box<Error>> {
+pub fn transform(settings: &Settings) -> Result<Vec<String>, Box<Error>> {
     let file_paths = file_io::create_file_paths(&settings);
 
     let mut lines = get_lines(&settings, &file_paths)?;
@@ -20,12 +20,11 @@ pub fn transform(settings: Settings) -> Result<Vec<String>, Box<Error>> {
 
 /// Čte soubor se slovíčky nebo Kanji v závislosti na nastavení
 pub fn get_lines<'a>(settings: &'a Settings, file_paths: &'a FilePaths) -> io::Result<Vec<String>> {
-    let lines;
-    if settings.kanji_mode {
-        lines = file_io::read_all_lines(&file_paths.kanji_file_path)?;
+    let lines = if settings.kanji_mode {
+        file_io::read_all_lines(&file_paths.kanji_file_path)?
     } else {
-        lines = file_io::read_all_lines(&file_paths.word_file_path)?;
-    }
+        file_io::read_all_lines(&file_paths.word_file_path)?
+    };
 
     Ok(lines)
 }
@@ -56,19 +55,19 @@ pub fn filter_lines<'a>(settings: &'a Settings, lines: Vec<String>) -> Vec<Strin
         .collect()
 }
 
-fn find_invalid_lines<'a>(lines: &'a Vec<String>) -> Result<(), String> {
+fn find_invalid_lines(lines: &[String]) -> Result<(), String> {
     use std::fmt::Write;
 
     let invalid_lines: Vec<String> = lines.iter()
-        .filter(|line| !line.contains("\t"))
+        .filter(|line| !line.contains('\t'))
         .map(|line| line.to_owned())
         .collect();
 
-    if invalid_lines.len() > 0 {
+    if invalid_lines.is_empty() {
         let mut error_message = String::new();
         writeln!(&mut error_message, "Následující řádky nemohou být rozděleny: \n").unwrap();
 
-        for invalid_line in invalid_lines.iter() {
+        for invalid_line in &invalid_lines {
             writeln!(&mut error_message, "{}", invalid_line).unwrap();
         }
         Err(error_message)

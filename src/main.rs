@@ -11,11 +11,11 @@ fn main() {
     print_header();
 
     let settings = create_default_settings();
-    let result = core::transform(settings);
+    let result = core::transform(&settings);
 
     match result {
         Ok(lines) => {
-            for line in lines.iter() {
+            for line in &lines {
                 println!("{}", line);
             }
         }
