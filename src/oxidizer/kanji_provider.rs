@@ -1,6 +1,7 @@
 use std::char;
+use std::collections::hash_set::HashSet;
 
-pub fn get_kanji_chars() -> Vec<char> {
+pub fn get_kanji_chars() -> HashSet<char> {
     get_kanji().iter()
         .map(|k| char::from_u32(*k).unwrap())
         .collect()
